@@ -45,7 +45,7 @@ class Mixed(BaseScoreType):
         self.precision = precision
 
     def __call__(self, y_true, y_pred):
-        return 0.4 * np.mean(abs(y_true - y_pred)) + 0.6 * np.sqrt(np.mean(np.square(y_true - y_pred)))
+        return 0.5 * np.mean(abs(y_true - y_pred)) + 0.5 * np.sqrt(np.mean(np.square(y_true - y_pred)))
 
 # A type (class) which will be used to create wrapper objects for y_pred
 Predictions = rw.prediction_types.make_regression(
