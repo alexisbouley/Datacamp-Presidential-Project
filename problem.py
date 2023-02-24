@@ -1,8 +1,9 @@
 import pandas as pd
 import os
+import numpy as np
 import rampwf as rw
 from sklearn.model_selection import KFold
-
+from rampwf.score_types.base import BaseScoreType
 
 problem_title = "French Presidential Elections"
 
@@ -22,6 +23,30 @@ _ignore_column_names = [
     'CODGEO'
 ]
 
+class MAE(BaseScoreType):
+    is_lower_the_better = True
+    minimum = 0.0
+    maximum = float('inf')
+
+    def __init__(self, name='mae', precision=2):
+        self.name = name
+        self.precision = precision
+
+    def __call__(self, y_true, y_pred):
+        return np.mean(abs(y_true - y_pred))
+    
+class Mixed(BaseScoreType):
+    is_lower_the_better = True
+    minimum = 0.0
+    maximum = float('inf')
+
+    def __init__(self, name='mixed', precision=2):
+        self.name = name
+        self.precision = precision
+
+    def __call__(self, y_true, y_pred):
+        return 0.4 * np.mean(abs(y_true - y_pred)) + 0.6 * np.sqrt(np.mean(np.square(y_true - y_pred)))
+
 # A type (class) which will be used to create wrapper objects for y_pred
 Predictions = rw.prediction_types.make_regression(
     label_names=_target_column_name
@@ -32,6 +57,8 @@ workflow = rw.workflows.Estimator()
 
 score_types = [
     rw.score_types.RMSE(name="rmse", precision=3),
+    MAE(name='mae', precision=3),
+    Mixed(name='mixed', precision=3)
 ]
 
 
