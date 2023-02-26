@@ -88,3 +88,12 @@ def get_train_data(path='.'):
 def get_test_data(path='.'):
     f_name = 'test.csv'
     return _read_data(path, f_name)
+
+def get_external_data(path="."):
+    f_name = "external_features.csv"
+    data = pd.read_csv(
+        os.path.join(path, "data",f_name),
+        sep=',',
+        low_memory=False
+    )
+    return data
