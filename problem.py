@@ -128,5 +128,5 @@ def handling_data_Paris(X, data_location):
         X["CODGEO"].str.contains("75056"), ["latitude", "longitude", "Superficie"]
     ] = paris_data.agg(
         {"latitude": np.mean, "longitude": np.mean, "Superficie": np.sum}
-    )
+    ).values
     return X
