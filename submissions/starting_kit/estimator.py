@@ -15,7 +15,7 @@ def _add_external_data(X):
         sep=',',
         low_memory=False
         )
-    X = X.merge(df_external, how='CODGEO')
+    X = X.merge(df_external, how='CODGEO') 
     return X
 
 def _missing_values_department(X, data_location):
