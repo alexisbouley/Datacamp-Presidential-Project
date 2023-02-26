@@ -197,14 +197,18 @@ def read_data_features():
 
     data_job.dropna(inplace=True)
 
-    data_features = data_income.merge(data_job, on="CODGEO", suffixes=None)
+    data_features = data_income.merge(data_job, on="CODGEO")
 
     return data_features
 
 
 data_2017 = read_data_2017()
+print("done with 2017")
 data_2022 = read_data_2022()
+print('done with downloading elections data')
 data_features = read_data_features()
+print("done with features")
+
 
 data_results = data_2017.merge(
     data_2022,
@@ -212,13 +216,13 @@ data_results = data_2017.merge(
     suffixes=("_2017", "_2022")
     )
 
-df = data_results.merge(
-    data_features,
-    on="CODGEO",
-    suffixes=None
-    )
-
-
+# df = data_results.merge(
+#     data_features,
+#     on="CODGEO",
+#     suffixes=None
+#     )
+print("merge is done")
+df = data_results.copy()
 df_train, df_test = train_test_split(
     df, test_size=0.2, random_state=57)
 
@@ -242,3 +246,9 @@ df_public_test.to_csv(
     os.path.join('data', 'public', 'test.csv'),
     index=False
     )
+
+data_features.to_csv(
+    os.path.join('data','external_features.csv')
+)
+except:
+    ipdb.set_trace()
