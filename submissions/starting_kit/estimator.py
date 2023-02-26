@@ -100,4 +100,4 @@ def get_estimator():
         ("regressor", regressor)
     ])
     reg = Regressor()
-    return reg.model
+    return final_pipe
