@@ -15,7 +15,15 @@ def _add_external_data(X):
         sep=',',
         low_memory=False
         )
-    X = X.merge(df_external, how='CODGEO') 
+    columns_to_use = ['NBPERS19', 'P19_POP1564', 'P19_CHOMEUR1564', 'Q219', 'PPMINI19','GI19']
+    X = X.merge(df_external[['CODGEO']+columns_to_use], how='CODGEO')
+    df_external['Departement'] = df_external['CODGEO'].apply(lambda element : element[:2])
+    X['Departement'] = X['CODGEO'].apply(lambda element : element[:2])
+
+    missing_columns = (X.isnull().sum()>0)[(X.isnull().sum()>0)].index
+    for feature in missing_columns:
+        globals()[f"dict_{feature}"] = df_external.groupby('Departement')[feature].mean().to_dict()
+        X.loc[X[feature].isnull(), feature] = X.loc[X[feature].isnull(), "Departement"].map(globals()[f"dict_{feature}"]) 
     return X
 
 def _missing_values_department(X, data_location):
