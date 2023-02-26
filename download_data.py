@@ -250,5 +250,3 @@ df_public_test.to_csv(
 data_features.to_csv(
     os.path.join('data','external_features.csv')
 )
-except:
-    ipdb.set_trace()
