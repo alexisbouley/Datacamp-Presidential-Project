@@ -177,7 +177,7 @@ def read_data_features():
         "Q219",
         "PPMINI19",
         "D919",
-        "GIN19",
+        "GI19",
         "PPEN19",
     ]
     data_income = data_income[subset_col]
@@ -216,7 +216,6 @@ if __name__ == "__main__":
     data_features = read_data_features()
     data_location = read_geolocation_features()
     print("done with features")
-
     data_results = data_2017.merge(data_2022, on="CODGEO", suffixes=("_2017", "_2022"))
     df = data_results.copy()
     df = filter_final_data(df)
