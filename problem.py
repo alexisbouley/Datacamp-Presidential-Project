@@ -20,7 +20,7 @@ _target_column_name = [
 _ignore_column_names = [
     '% Vot/Ins_2022',
     '%_Exp/Ins_2022',
-    'CODGEO'
+    # 'CODGEO'
 ]
 
 class MAE(BaseScoreType):
