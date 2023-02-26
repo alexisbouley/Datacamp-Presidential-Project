@@ -5,30 +5,25 @@ from sklearn.model_selection import train_test_split
 import requests
 import zipfile
 import io
+import ssl
+import ipdb
 
-col_target = [
-    "% Abs/Ins",
-    "% Vot/Ins",
-    "% Nuls/Ins",
-    "% Blancs/Ins",
-    "%_Exp/Ins"
-    ]
+ssl._create_default_https_context = ssl._create_unverified_context
+
+col_target = ["% Abs/Ins", "% Vot/Ins", "% Nuls/Ins", "% Blancs/Ins", "%_Exp/Ins"]
 col_target += [
     "% Autres/Ins",
     "% Voix/Ins_MACRON",
     "% Voix/Ins_MELENCHON",
-    "% Voix/Ins_LEPEN"
-    ]
+    "% Voix/Ins_LEPEN",
+]
+
+departments_to_ignore = ["ZZ", "ZA", "ZN", "ZB", "ZC", "ZD", "ZX", "ZS", "ZW"]
 
 
 def f(x):
     return pd.DataFrame(
-        np.average(
-            x[col_target],
-            weights=x['Inscrits'],
-            axis=0
-            ),
-        index=col_target
+        np.average(x[col_target], weights=x["Inscrits"], axis=0), index=col_target
     ).T
 
 
@@ -40,37 +35,28 @@ def read_data_2017():
 
     url = """https://www.data.gouv.fr/fr/datasets/r/f4c23dab-46ff-4799-b217-1ab29db7938b"""
 
-    data_2017 = pd.read_csv(
-        url,
-        sep=",",
-        encoding="latin1",
-        engine="python"
-    )
+    data_2017 = pd.read_csv(url, sep=",", encoding="latin1", engine="python")
 
     data_2017.dropna(inplace=True)
 
     data_2017["% Autres/Ins"] = 0
 
-    candidats = ['HAMON', 'ARTHAUD', 'POUTOU', 'CHEMINADE']
-    candidats += ['LASSALLE', 'ASSELINEAU', 'FILLON']
+    candidats = ["HAMON", "ARTHAUD", "POUTOU", "CHEMINADE"]
+    candidats += ["LASSALLE", "ASSELINEAU", "FILLON"]
 
     for candidat in candidats:
         data_2017["% Autres/Ins"] += data_2017[candidat + "_ins"]
 
-    data_2017.rename(
-        {"MÃLENCHON_ins": "% Voix/Ins_MELENCHON"},
-        inplace=True,
-        axis=1
-        )
+    data_2017.rename({"MÃLENCHON_ins": "% Voix/Ins_MELENCHON"}, inplace=True, axis=1)
 
     data_2017.rename({"LE PEN_ins": "% Voix/Ins_LEPEN"}, inplace=True, axis=1)
     data_2017.rename({"MACRON_ins": "% Voix/Ins_MACRON"}, inplace=True, axis=1)
     data_2017.rename({"CodeInsee": "CODGEO"}, inplace=True, axis=1)
-    data_2017.rename({'Abstentions_ins': "% Abs/Ins"}, inplace=True, axis=1)
-    data_2017.rename({'Votants_ins': "% Vot/Ins"}, inplace=True, axis=1)
-    data_2017.rename({'Blancs_ins': "% Blancs/Ins"}, inplace=True, axis=1)
-    data_2017.rename({'Nuls_ins': "% Nuls/Ins"}, inplace=True, axis=1)
-    data_2017.rename({'ExprimÃ©s_ins': "%_Exp/Ins"}, inplace=True, axis=1)
+    data_2017.rename({"Abstentions_ins": "% Abs/Ins"}, inplace=True, axis=1)
+    data_2017.rename({"Votants_ins": "% Vot/Ins"}, inplace=True, axis=1)
+    data_2017.rename({"Blancs_ins": "% Blancs/Ins"}, inplace=True, axis=1)
+    data_2017.rename({"Nuls_ins": "% Nuls/Ins"}, inplace=True, axis=1)
+    data_2017.rename({"ExprimÃ©s_ins": "%_Exp/Ins"}, inplace=True, axis=1)
 
     data_2017 = data_2017.groupby(by="CODGEO").apply(func=f)
     data_2017 = data_2017.reset_index().drop("level_1", axis=1)
@@ -101,8 +87,8 @@ def read_data_2022():
         "% Nuls/Vot",
         "Exprimésé",
         "%_Exp/Ins",
-        "%_Exp/Vot"
-        ]
+        "%_Exp/Vot",
+    ]
 
     candidate_col = [
         "N°Panneau",
@@ -111,52 +97,46 @@ def read_data_2022():
         "Prénom",
         "Voix",
         "% Voix/Ins",
-        "% Voix/Exp"
-        ]
+        "% Voix/Exp",
+    ]
 
     for candidate in range(1, 13):
-        col += [x+"_"+str(candidate) for x in candidate_col]
+        col += [x + "_" + str(candidate) for x in candidate_col]
 
     data_2022 = pd.read_csv(
         os.path.join(
-            "data_source",
-            "resultats-par-niveau-burvot-t1-france-entiere.txt"
-            ),
+            "data_source", "resultats-par-niveau-burvot-t1-france-entiere.txt"
+        ),
         sep=";",
         encoding="latin1",
         engine="python",
         names=col,
-        header=0
-        )
+        header=0,
+    )
 
-    col_2022 = ["% Abs/Ins",
-                "% Vot/Ins",
-                "% Nuls/Ins",
-                "% Blancs/Ins",
-                "%_Exp/Ins"
-                ]
+    col_2022 = ["% Abs/Ins", "% Vot/Ins", "% Nuls/Ins", "% Blancs/Ins", "%_Exp/Ins"]
 
     for candidat in range(1, 13):
         col_2022 += ["% Voix/Ins_" + str(candidat)]
 
     for col in data_2022[col_2022]:
-        data_2022[col] = data_2022[col].str.replace(",", ".").astype('float32')
+        data_2022[col] = data_2022[col].str.replace(",", ".").astype("float32")
 
     data_2022["% Autres/Ins"] = 0
 
     for candidat in range(1, 13):
         if candidat not in [3, 5, 7]:
-            data_2022["% Autres/Ins"] += data_2022["% Voix/Ins_"+str(candidat)]
+            data_2022["% Autres/Ins"] += data_2022["% Voix/Ins_" + str(candidat)]
 
     data_2022.rename(
-            {
-                "% Voix/Ins_3": "% Voix/Ins_MACRON",
-                "% Voix/Ins_5": "% Voix/Ins_MELENCHON",
-                "% Voix/Ins_7": "% Voix/Ins_LEPEN"
-            },
-            inplace=True,
-            axis=1
-        )
+        {
+            "% Voix/Ins_3": "% Voix/Ins_MACRON",
+            "% Voix/Ins_5": "% Voix/Ins_MELENCHON",
+            "% Voix/Ins_7": "% Voix/Ins_LEPEN",
+        },
+        inplace=True,
+        axis=1,
+    )
 
     series_1 = data_2022["Code du département"]
     series_2 = data_2022["Code de la commune"].apply(g)
@@ -178,23 +158,29 @@ def read_data_features():
         z.open("base-cc-emploi-pop-active-2019.CSV"),
         sep=";",
         encoding="latin1",
-        engine="python"
-        )
+        engine="python",
+    )
 
     url = """https://www.insee.fr/fr/statistiques/fichier/6036907/indic-struct-distrib-revenu-2019-COMMUNES_csv.zip"""
     r = requests.get(url)
     z = zipfile.ZipFile(io.BytesIO(r.content))
 
     data_income = pd.read_csv(
-        z.open("FILO2019_DISP_COM.csv"),
-        sep=";",
-        encoding="latin1",
-        engine="python"
-        )
+        z.open("FILO2019_DISP_COM.csv"), sep=";", encoding="latin1", engine="python"
+    )
 
-    subset_col = ["CODGEO", "NBMEN19", "NBPERS19", "NBUC19", "Q219"]
+    subset_col = [
+        "CODGEO",
+        "NBMEN19",
+        "NBPERS19",
+        "NBUC19",
+        "Q219",
+        "PPMINI19",
+        "D919",
+        "GIN19",
+        "PPEN19",
+    ]
     data_income = data_income[subset_col]
-
     data_job.dropna(inplace=True)
 
     data_features = data_income.merge(data_job, on="CODGEO")
@@ -202,51 +188,55 @@ def read_data_features():
     return data_features
 
 
-data_2017 = read_data_2017()
-print("done with 2017")
-data_2022 = read_data_2022()
-print('done with downloading elections data')
-data_features = read_data_features()
-print("done with features")
+def read_geolocation_features():
+    url = "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/correspondance-code-insee-code-postal/exports/csv?lang=fr&timezone=Europe%2FBerlin&use_labels=true&delimiter=%3B"
+    data_localisation = pd.read_csv(url, sep=";", encoding="latin1", engine="python")
+    data_localisation["latitude"] = data_localisation["geo_point_2d"].apply(
+        lambda element: float(element.split(",")[0])
+    )
+    data_localisation["longitude"] = data_localisation["geo_point_2d"].apply(
+        lambda element: float(element.split(",")[1])
+    )
+    data_localisation["CODGEO"] = data_localisation["ï»¿Code INSEE"]
+    return data_localisation[["CODGEO", "latitude", "longitude", "Superficie"]]
 
 
-data_results = data_2017.merge(
-    data_2022,
-    on="CODGEO",
-    suffixes=("_2017", "_2022")
+def filter_final_data(X):
+    X = X.copy()
+    for problematic_department in departments_to_ignore:
+        X = X[~X["CODGEO"].str.contains(problematic_department)]
+    return X
+
+
+if __name__ == "__main__":
+    data_2017 = read_data_2017()
+    print("done with 2017")
+    data_2022 = read_data_2022()
+    print("done with downloading elections data")
+    data_features = read_data_features()
+    data_location = read_geolocation_features()
+    print("done with features")
+
+    data_results = data_2017.merge(data_2022, on="CODGEO", suffixes=("_2017", "_2022"))
+    df = data_results.copy()
+    df = filter_final_data(df)
+    df_train, df_test = train_test_split(df, test_size=0.2, random_state=57)
+
+    df_public_train, df_public_test = train_test_split(
+        df_train, test_size=0.2, random_state=57
     )
 
-# df = data_results.merge(
-#     data_features,
-#     on="CODGEO",
-#     suffixes=None
-#     )
-print("merge is done")
-df = data_results.copy()
-df_train, df_test = train_test_split(
-    df, test_size=0.2, random_state=57)
+    path = os.path.join("data", "public")
+    if not os.path.exists(path):
+        os.makedirs(path)
 
-df_public_train, df_public_test = train_test_split(
-    df_train, test_size=0.2, random_state=57)
+    df_train.to_csv(os.path.join("data", "train.csv"), index=False)
+    df_test.to_csv(os.path.join("data", "test.csv"), index=False)
 
-path = os.path.join('data', 'public')
-if not os.path.exists(path):
-    os.makedirs(path)
+    df_public_train.to_csv(os.path.join("data", "public", "train.csv"), index=False)
 
-df_train.to_csv(os.path.join('data', 'train.csv'), index=False)
-df_test.to_csv(os.path.join('data', 'test.csv'), index=False)
+    df_public_test.to_csv(os.path.join("data", "public", "test.csv"), index=False)
 
+    data_features.to_csv(os.path.join("data", "external_features.csv"), index=False)
 
-df_public_train.to_csv(
-    os.path.join('data', 'public', 'train.csv'),
-    index=False
-    )
-
-df_public_test.to_csv(
-    os.path.join('data', 'public', 'test.csv'),
-    index=False
-    )
-
-data_features.to_csv(
-    os.path.join('data','external_features.csv')
-)
+    data_location.to_csv(os.path.join("data", "location_codgeo.csv"), index=False)
