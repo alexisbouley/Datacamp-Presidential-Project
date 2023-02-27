@@ -71,23 +71,24 @@ def get_cv(X, y, random_state=57):
     return cv.split(X, y)
 
 
-def _read_data(path, f_name):
+def _read_data(path, f_name, dataframe=False):
 
     data = pd.read_csv(os.path.join(path, "data", f_name), sep=",", low_memory=False)
     y_array = data[_target_column_name].values
     X_df = data.drop(_target_column_name + _ignore_column_names, axis=1)
-    y_array = pd.DataFrame(y_array, columns=_target_column_name)
+    if dataframe:
+        y_array = pd.DataFrame(y_array, columns=_target_column_name)
     return X_df, y_array
 
 
-def get_train_data(path="."):
+def get_train_data(path=".", dataframe=False):
     f_name = "train.csv"
-    return _read_data(path, f_name)
+    return _read_data(path, f_name, dataframe)
 
 
-def get_test_data(path="."):
+def get_test_data(path=".",dataframe=False):
     f_name = "test.csv"
-    return _read_data(path, f_name)
+    return _read_data(path, f_name, dataframe)
 
 
 def get_external_data(path="."):
