@@ -8,7 +8,7 @@ import os
 import numpy as np
 
 
-def _add_external_data(X):
+def add_external_data(X):
     X = X.copy()
     df_external = pd.read_csv(
         os.path.join("data","external_features.csv"),
@@ -26,7 +26,7 @@ def _add_external_data(X):
         X.loc[X[feature].isnull(), feature] = X.loc[X[feature].isnull(), "Departement"].map(globals()[f"dict_{feature}"]) 
     return X
 
-def _missing_values_department(X, data_location):
+def missing_values_department(X, data_location):
     X = X.copy()
     X["Departement"] = X["CODGEO"].apply(lambda element: element[:2])
     data_location["Departement"] = data_location["CODGEO"].apply(lambda element: element[:2])
@@ -40,7 +40,7 @@ def _missing_values_department(X, data_location):
     X = X.drop(columns=["Departement"])
     return X
 
-def _handling_data_Paris(X, data_location):
+def handling_data_Paris(X, data_location):
     X = X.copy()
     paris_boroughs = []
     for i in range(1, 21):
@@ -59,7 +59,7 @@ def _handling_data_Paris(X, data_location):
         pass
     return X
 
-def _add_location_data(X):
+def add_location_data(X):
     X = X.copy()
     df_location = pd.read_csv(
         os.path.join("data","location_codgeo.csv"),
@@ -67,11 +67,11 @@ def _add_location_data(X):
         low_memory=False
         )
     X = X.merge(df_location, on="CODGEO",how="left")
-    X = _handling_data_Paris(X, df_location)
-    X = _missing_values_department(X, df_location)
+    X = handling_data_Paris(X, df_location)
+    X = missing_values_department(X, df_location)
     return X
 
-def _removing_codgeo(X):
+def removing_codgeo(X):
     X = X.copy()
     X = X.drop(columns={"CODGEO"})
     return X
@@ -98,8 +98,8 @@ class Regressor(TransformerMixin, BaseEstimator):
 
 
 def get_estimator():
-    location_data_pipeline = FunctionTransformer(_add_location_data, validate=False)
-    external_data_pipeline = FunctionTransformer(_add_external_data, validate=False)
+    location_data_pipeline = FunctionTransformer(add_location_data, validate=False)
+    external_data_pipeline = FunctionTransformer(add_external_data, validate=False)
     regressor = MultiOutputRegressor(Ridge(random_state=57))
     final_pipe = Pipeline([
         ("adding_location_data", location_data_pipeline),
