@@ -73,10 +73,10 @@ def get_cv(X, y, random_state=57):
 
 def _read_data(path, f_name):
 
-    data = pd.read_csv(os.path.join(path, "data", f_name), sep=",", low_memory=False)
+    data = pd.read_csv(os.path.join(path, "data", f_name), sep=",", low_memory=False, index_col=0)
     y_array = data[_target_column_name].values
     X_df = data.drop(_target_column_name + _ignore_column_names, axis=1)
-    y_array = pd.DataFrame(y_array, columns=_target_column_name)
+    y_array = pd.DataFrame(y_array, columns=_target_column_name, index=X_df.index)
     return X_df, y_array
 
 
@@ -89,18 +89,19 @@ def get_test_data(path="."):
     f_name = "test.csv"
     return _read_data(path, f_name)
 
+def get_raw_train_data(path="."):
+    f_name = "train_raw.csv"
+    return _read_data(path, f_name)
 
 def get_external_data(path="."):
     f_name = "external_features.csv"
     data = pd.read_csv(os.path.join(path, "data", f_name), sep=",", low_memory=False)
     return data
 
-
 def get_location_data(path="."):
     f_name = "location_codgeo.csv"
     data = pd.read_csv(os.path.join(path, "data", f_name), sep=",", low_memory=False)
     return data
-
 
 def missing_values_department(X):
     X = X.copy()
@@ -130,3 +131,9 @@ def handling_data_Paris(X, data_location):
         {"latitude": np.mean, "longitude": np.mean, "Superficie": np.sum}
     ).values
     return X
+
+def _add_departement(X):
+    new_column = X.loc[:,'CODGEO'].apply(lambda element : element[:2]).values
+    X_tr = X.copy()
+    X_tr.loc[:, 'Departement'] = new_column
+    return X_tr
