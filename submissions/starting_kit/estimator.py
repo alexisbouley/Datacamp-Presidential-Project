@@ -6,7 +6,7 @@ from sklearn.pipeline import Pipeline
 import pandas as pd
 import os
 import numpy as np
-
+import ipdb
 
 def add_external_data(X):
     X = X.copy()
@@ -15,15 +15,16 @@ def add_external_data(X):
         sep=',',
         low_memory=False
         )
+    
     columns_to_use = ['NBPERS19', 'P19_POP1564', 'P19_CHOMEUR1564', 'Q219', 'PPMINI19','GI19']
-    X = X.merge(df_external[['CODGEO']+columns_to_use], how='CODGEO')
+    X = X.merge(df_external[['CODGEO']+columns_to_use], on='CODGEO',how="left")
     df_external['Departement'] = df_external['CODGEO'].apply(lambda element : element[:2])
     X['Departement'] = X['CODGEO'].apply(lambda element : element[:2])
 
     missing_columns = (X.isnull().sum()>0)[(X.isnull().sum()>0)].index
     for feature in missing_columns:
-        globals()[f"dict_{feature}"] = df_external.groupby('Departement')[feature].mean().to_dict()
-        X.loc[X[feature].isnull(), feature] = X.loc[X[feature].isnull(), "Departement"].map(globals()[f"dict_{feature}"]) 
+        dict_feature = df_external.groupby('Departement')[feature].mean().to_dict()
+        X.loc[X[feature].isnull(), feature] = X.loc[X[feature].isnull(), "Departement"].map(dict_feature) 
     return X
 
 def missing_values_department(X, data_location):
@@ -32,9 +33,9 @@ def missing_values_department(X, data_location):
     data_location["Departement"] = data_location["CODGEO"].apply(lambda element: element[:2])
     data_group = data_location.groupby("Departement")[["latitude", "longitude", "Superficie"]].mean()
     for column in data_group.columns:
-        globals()[f"dict_{column}"] = data_group[column].to_dict()
+        dict_feature = data_group[column].to_dict()
         X.loc[X[column].isnull(), "Departement"].map(
-            globals()[f"dict_{column}"]
+            dict_feature
         ).value_counts()
         X[column].fillna((X[column].mean()), inplace=True)
     X = X.drop(columns=["Departement"])
@@ -73,39 +74,46 @@ def add_location_data(X):
 
 def removing_codgeo(X):
     X = X.copy()
-    X = X.drop(columns={"CODGEO"})
+    try:
+        X = X.drop(columns={"CODGEO", "Departement"})
+    except:
+        X = X.drop(columns={"CODGEO"})
     return X
     
     
 class Regressor(TransformerMixin, BaseEstimator):
     def __init__(self):
-
+        location_data_pipeline = FunctionTransformer(add_location_data, validate=False)
+        external_data_pipeline = FunctionTransformer(add_external_data, validate=False)
+        removing_codgeo_pipeline = FunctionTransformer(removing_codgeo, validate=False)
         self.regressor = MultiOutputRegressor(Ridge(random_state=57))
-        self.preprocessor = StandardScaler()
-
-        self.model = Pipeline([
-            ("preprocessor", self.preprocessor),
+        self.model =  Pipeline([
+            ("adding_location_data", location_data_pipeline),
+            ("adding_insee_data", external_data_pipeline),
+            ('remove_codgeo',removing_codgeo_pipeline),
+            ("preprocessor", StandardScaler()),
             ("regressor", self.regressor)
         ])
+        print(self.model)
 
     def fit(self, X, y):
-
+        # ipdb.set_trace()
         self.model.fit(X, y)
 
     def predict(self, X):
-
         return self.model.predict(X)
 
 
 def get_estimator():
     location_data_pipeline = FunctionTransformer(add_location_data, validate=False)
     external_data_pipeline = FunctionTransformer(add_external_data, validate=False)
+    removing_codgeo_pipeline = FunctionTransformer(removing_codgeo, validate=False)
     regressor = MultiOutputRegressor(Ridge(random_state=57))
-    final_pipe = Pipeline([
+    final_pipe =  Pipeline([
         ("adding_location_data", location_data_pipeline),
         ("adding_insee_data", external_data_pipeline),
+        ('remove_codgeo',removing_codgeo_pipeline),
         ("preprocessor", StandardScaler()),
         ("regressor", regressor)
-    ])
-    reg = Regressor()
+        ])
     return final_pipe
