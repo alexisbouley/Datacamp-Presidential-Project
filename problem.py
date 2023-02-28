@@ -76,19 +76,8 @@ def _read_data(path, f_name, dataframe=False):
     data = pd.read_csv(os.path.join(path, "data", f_name), sep=",", low_memory=False)
     y_array = data[_target_column_name].values
     X_df = data.drop(_target_column_name + _ignore_column_names, axis=1)
-<<<<<<< HEAD
     if dataframe:
         y_array = pd.DataFrame(y_array, columns=_target_column_name)
-=======
-    return X_df, y_array
-
-def _read_raw_data(path, f_name):
-
-    data = pd.read_csv(os.path.join(path, "data", f_name), sep=",", low_memory=False)
-    y_array = data[_target_column_name].values
-    X_df = data.drop(_target_column_name + _ignore_column_names, axis=1)
-    y_array = pd.DataFrame(y_array, columns=_target_column_name, index=X_df.index)
->>>>>>> 211dc446add01f459bd633f60827779d18ddb1ae
     return X_df, y_array
 
 

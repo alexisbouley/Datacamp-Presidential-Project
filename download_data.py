@@ -131,8 +131,8 @@ def read_data_2022():
     data_2022.rename(
         {
             "% Voix/Ins_3": "% Voix/Ins_MACRON",
-            "% Voix/Ins_5": "% Voix/Ins_MELENCHON",
-            "% Voix/Ins_7": "% Voix/Ins_LEPEN",
+            "% Voix/Ins_5": "% Voix/Ins_LEPEN",
+            "% Voix/Ins_7": "% Voix/Ins_MELENCHON",
         },
         inplace=True,
         axis=1,
