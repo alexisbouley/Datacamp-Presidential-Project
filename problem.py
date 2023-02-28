@@ -73,7 +73,14 @@ def get_cv(X, y, random_state=57):
 
 def _read_data(path, f_name):
 
-    data = pd.read_csv(os.path.join(path, "data", f_name), sep=",", low_memory=False, index_col=0)
+    data = pd.read_csv(os.path.join(path, "data", f_name), sep=",", low_memory=False)
+    y_array = data[_target_column_name].values
+    X_df = data.drop(_target_column_name + _ignore_column_names, axis=1)
+    return X_df, y_array
+
+def _read_raw_data(path, f_name):
+
+    data = pd.read_csv(os.path.join(path, "data", f_name), sep=",", low_memory=False)
     y_array = data[_target_column_name].values
     X_df = data.drop(_target_column_name + _ignore_column_names, axis=1)
     y_array = pd.DataFrame(y_array, columns=_target_column_name, index=X_df.index)
@@ -91,7 +98,7 @@ def get_test_data(path="."):
 
 def get_raw_train_data(path="."):
     f_name = "train_raw.csv"
-    return _read_data(path, f_name)
+    return _read_raw_data(path, f_name)
 
 def get_external_data(path="."):
     f_name = "external_features.csv"
