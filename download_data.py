@@ -362,14 +362,14 @@ if __name__ == "__main__":
     data_features.to_csv(os.path.join("data", "external_features.csv"), index=False)
     data_location.to_csv(os.path.join("data", "location_codgeo.csv"), index=False)
     
-    df_train, df_test = train_test_split(df, test_size=0.2, random_state=57)
-    df_train.to_csv(os.path.join("data", "train_raw.csv"), index=False)
-    print('Raw data has been saved')
+    # df_train, df_test = train_test_split(df, test_size=0.2, random_state=57)
+    # df_train.to_csv(os.path.join("data", "train_raw.csv"), index=False)
+    # print('Raw data has been saved')
     
-    df = preprocessing(df, data_location, data_features)
-    df.fillna(0)
-    df.to_csv(os.path.join("data", "full_data.csv"), index=True)
-    print('Preprocessing has been finished')
+    # df = preprocessing(df, data_location, data_features)
+    # df.fillna(0)
+    # df.to_csv(os.path.join("data", "full_data.csv"), index=True)
+    # print('Preprocessing has been finished')
     
     
     df_train, df_test = train_test_split(df, test_size=0.2, random_state=57, shuffle=False)

@@ -67,7 +67,11 @@ def add_location_data(X):
         sep=',',
         low_memory=False
         )
-    X = X.merge(df_location, on="CODGEO",how="left")
+    X['CODGEO']=X['CODGEO'].astype(str)
+    try:
+        X = X.merge(df_location, on="CODGEO",how="left")
+    except:
+        ipdb.set_trace()
     X = handling_data_Paris(X, df_location)
     X = missing_values_department(X, df_location)
     return X
